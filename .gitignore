@@ -1,0 +1,8 @@
+/.idea
+/__pycache__
+/app/__pycache__
+/control/__pycache__
+/lib/__pycache__
+/docs
+config.json
+syslog.log

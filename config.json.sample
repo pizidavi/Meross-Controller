@@ -1,0 +1,25 @@
+{
+  "MEROSS": {
+    "email": "",
+    "password": ""
+  },
+  "SOLAREDGE": {
+    "api_token": "",
+    "site_id": "",
+    "home_default_load": 0
+  },
+  "LOCATION": {
+    "latitude": 41.90438,
+    "longitude": 12.49415,
+    "timezone": 1
+  },
+  "DATABASE": {
+    "host": "localhost",
+    "user": "",
+    "password": "",
+    "database": ""
+  },
+  "TELEGRAM": {
+    "token": ""
+  }
+}
