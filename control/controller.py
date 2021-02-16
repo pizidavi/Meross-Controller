@@ -26,7 +26,7 @@ def get_devices():
             'name': row.strName,
             'currentPowerUsage': row.intUsage,
             'solarPowerOn': bool(row.boolSolarPowerOn),
-            'timeDelayBeforePowerOff': 30,
+            'timeDelayBeforePowerOff': row.timeDelayBeforePowerOff,
             'timesAlwaysOn': times,
             'lastPowerOn': row.dtaLastPowerOn,
             'disabled': bool(row.boolDisable)

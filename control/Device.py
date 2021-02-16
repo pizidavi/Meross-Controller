@@ -72,7 +72,7 @@ class Device:
 
     @property
     def next_power_status_change(self) -> datetime:
-        return self.__last_power_on + timedelta(minutes=self.__kwargs['timeDelayBeforePowerOff'])
+        return self.__last_power_on + self.__kwargs['timeDelayBeforePowerOff']
 
     @property
     def last_power_on(self) -> datetime:

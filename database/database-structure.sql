@@ -9,6 +9,7 @@ CREATE TABLE `devices` (
   `intIdDevice` int(11) NOT NULL AUTO_INCREMENT,
   `strName` varchar(50) NOT NULL,
   `intUsage` int(11) NOT NULL,
+  `timeDelayBeforePowerOff` time NOT NULL DEFAULT '00:00:00',
   `boolSolarPowerOn` tinyint(1) NOT NULL DEFAULT 1,
   `boolDisable` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`intIdDevice`)

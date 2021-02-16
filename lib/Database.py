@@ -24,5 +24,3 @@ class Database:
     def close(self):
         self.__cursor.close()
         self.__db.close()
-
-    __del__ = close
