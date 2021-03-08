@@ -1,23 +1,17 @@
-# Imports
 import asyncio
-from app.MerossController import MerossController
-from app.TelegramBot import TelegramBot
+from app.App import App
 
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
-    controller = MerossController(loop)
-    bot = TelegramBot()
+    app = App(loop)
 
     try:
         loop.run_forever()
     except (KeyboardInterrupt, SystemExit):
-        print("")
+        print('')
     except Exception as e:
         print(f'Error: {e}')
 
-    controller.close()
-    bot.close()
-
-    # loop.close()
+    app.close()

@@ -1,10 +1,8 @@
-import asyncio
 import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import lib.Logging as Log
-from lib.Config import Config
+from lib.logger import get_logger
 from control.Meross import Meross
 from lib.SolarEdge import SolarEdge
 
@@ -12,27 +10,26 @@ from lib.SolarEdge import SolarEdge
 logging.getLogger('meross_iot').setLevel(logging.INFO)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
-logger = Log.get_logger(__name__)
-config = Config()
+logger = get_logger(__name__)
 
 
-class MerossController:
+class Modal:
 
-    def __init__(self, loop=None):
-        self.__loop = asyncio.get_event_loop() if loop is None else loop
+    def __init__(self, meross, solaredge, sun):
+        self.__sun = sun
+        self.__home_default_load = solaredge.home_default_load
 
-        self.__manager = Meross(config.meross.email, config.meross.password)
-        self.__solaredge = SolarEdge(config.solaredge.api_token, config.solaredge.site_id)
+        self.__manager = Meross(meross.email, meross.password)
+        self.__solaredge = SolarEdge(solaredge.api_token, solaredge.site_id)
 
         self.__scheduler = AsyncIOScheduler()
         self.__scheduler.add_job(self.__async_loop, 'interval', minutes=5)
 
-        self.__loop.run_until_complete(self.async_init())
-
-    async def async_init(self):
+    async def async_init(self) -> None:
         logger.info('MerossController started')
-        await self.__manager.async_init()
         self.__scheduler.start()
+        await self.__manager.async_init()
+        await self.__async_loop()
 
     async def __async_loop(self):
         now = datetime.now()
@@ -41,12 +38,15 @@ class MerossController:
         if not len(devices):
             return
 
-        result = self.__solaredge.get_current_power_flow(sunrise=config.sun.sunrise, sunset=config.sun.sunset)
-        power_produced = (result['PV'] - result['LOAD']) if result else -config.solaredge.home_default_load
+        result = self.__solaredge.get_current_power_flow(sunrise=self.__sun.sunrise, sunset=self.__sun.sunset)
+        power_produced = (result['PV'] - result['LOAD']) if result else -self.__home_default_load
         logger.info(f"Remaining power: {power_produced} W")
 
         for device in devices:
             await device.async_update()  # Update device information
+            if device.is_locked:  # Ignore locked device
+                logger.info('%s ignored because locked', device.name)
+                continue
 
             time_always_on = False
             for time in device.times_always_on:
@@ -59,7 +59,7 @@ class MerossController:
                     await device.async_turn_on()
 
             elif device.solar_power_on and \
-                    (config.sun.sunrise <= now.time() < config.sun.sunset or device.is_on):  # Solar-Energy Power On
+                    (self.__sun.sunrise <= now.time() < self.__sun.sunset or device.is_on):  # Solar-Energy Power On
                 if not device.is_on and power_produced > device.current_power_usage:  # to On
                     logger.debug(f"{device.name} is turning on")
                     await device.async_turn_on()
@@ -76,8 +76,25 @@ class MerossController:
                 logger.debug(f"{device.name} is turning off | Always Off")
                 await device.async_turn_off()
 
-    def close(self):
-        self.__loop.run_until_complete(self.async_close())
+    def get_device(self, device_id):
+        return self.__manager.get_device(device_id)
+
+    def unlock_device(self, device_id):
+        device = self.__manager.get_device(device_id)
+        if device is not None:
+            device.unlock()
+        else:
+            logger.warning('No device found for %s', device_id)
+
+    def lock_device(self, device_id, delay=None):
+        device = self.__manager.get_device(device_id)
+        if device is not None:
+            if delay is not None:
+                device.lock_for(delay)
+            else:
+                device.lock()
+        else:
+            logger.warning('No device found for %s', device_id)
 
     async def async_close(self):
         self.__scheduler.shutdown(wait=False)

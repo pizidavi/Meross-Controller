@@ -1,12 +1,13 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+from threading import Timer
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.model.enums import Namespace
 
-import lib.Logging as Log
+from lib.logger import get_logger
 import control.controller as Controller
 
-logger = Log.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class Device:
@@ -17,6 +18,10 @@ class Device:
 
         self.__last_state = None
         self.__last_power_on = kwargs['lastPowerOn']
+
+        self.__locked = False
+        self.__locked_timer = None
+        self.__lock_expire_time = None
 
         self.__notification_register = False
         self.__register_push_notification()
@@ -59,6 +64,10 @@ class Device:
         return self.__kwargs['timesAlwaysOn']
 
     @property
+    def lock_expire_time(self) -> time:
+        return self.__lock_expire_time
+
+    @property
     def firmware_version(self) -> str:
         return self.__device.fwversion
 
@@ -71,8 +80,8 @@ class Device:
         return self.__device.is_on()
 
     @property
-    def next_power_status_change(self) -> datetime:
-        return self.__last_power_on + self.__kwargs['timeDelayBeforePowerOff']
+    def is_locked(self) -> bool:
+        return self.__locked
 
     @property
     def last_power_on(self) -> datetime:
@@ -82,10 +91,50 @@ class Device:
     def last_async_update_timestamp(self):
         return self.__device.last_full_update_timestamp
 
+    @property
+    def last_metrics(self):
+        if isinstance(self.__device, ElectricityMixin):
+            return self.__device.get_last_sample()
+        else:
+            return None
+
+    @property
+    def next_power_status_change(self) -> datetime:
+        return self.__last_power_on + self.__kwargs['timeDelayBeforePowerOff']
+
+    def unlock(self) -> None:
+        if self.__locked:
+            logger.info('%s unlocked', self.name)
+            self.__locked = False
+            self.__cancel_lock()
+
+    def lock(self) -> None:
+        if not self.__locked:
+            logger.info('%s locked', self.name)
+            self.__locked = True
+            self.__cancel_lock()
+
+    def lock_for(self, delay: int) -> None:
+        logger.info('Lock %s for %s minutes', self.name, delay)
+        self.lock()
+        if delay > 0:
+            self.__locked_timer = Timer(delay, self.unlock)
+            self.__locked_timer.start()
+            self.__lock_expire_time = (datetime.now() + timedelta(seconds=delay)).time()
+
+    def __cancel_lock(self) -> None:
+        if self.__locked_timer is not None and self.__locked_timer.is_alive():
+            self.__locked_timer.cancel()
+            self.__lock_expire_time = None
+
     async def async_update(self) -> None:
         if self.last_async_update_timestamp is None:
             await self.__device.async_update()
             self.__last_state = self.is_on
+
+    async def async_update_instant_metrics(self):
+        if isinstance(self.__device, ElectricityMixin):
+            await self.__device.async_get_instant_metrics()
 
     def __register_push_notification(self) -> None:
         if not self.__notification_register:
@@ -97,7 +146,7 @@ class Device:
             self.__device.unregister_push_notification_handler_coroutine(self.__notifications)
             self.__notification_register = False
 
-    async def __notifications(self, namespace, data, device_internal_id) -> None:
+    async def __notifications(self, namespace: Namespace, data: dict, device_internal_id: int) -> None:
 
         if namespace == Namespace.CONTROL_TOGGLEX:
             toggle = int(data['togglex'][0]['onoff'])
@@ -119,9 +168,6 @@ class Device:
         else:
             logger.debug(f'Notification: {namespace} {self.name}: {data}')
 
-    async def async_get_instant_metrics(self):
-        return await self.__device.async_get_instant_metrics() if isinstance(self.__device, ElectricityMixin) else None
-
     async def async_turn_on(self) -> None:
         await self.__device.async_turn_on()
 
@@ -130,6 +176,7 @@ class Device:
 
     def __del__(self):
         self.__unregister_push_notification()
+        self.__cancel_lock()
 
     def __str__(self):
         return f"{self.name} ({self.type}) - consumption {self.current_power_usage} W"

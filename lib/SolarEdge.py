@@ -3,9 +3,9 @@ import certifi
 import json
 from datetime import datetime, time
 
-import lib.Logging as Log
+from lib.logger import get_logger
 
-logger = Log.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class SolarEdge:
@@ -19,7 +19,7 @@ class SolarEdge:
         self.__api_token = api_token
         self.__site_id = site_id
 
-    def get_current_power_flow(self, sunrise: time, sunset: time):
+    def get_current_power_flow(self, sunrise: time, sunset: time) -> dict or None:
         """
         :param sunrise: time | Sunrise hour
         :param sunset:  time | Sunset hour
@@ -51,7 +51,6 @@ class SolarEdge:
                 'unit': unit,
                 'connections': data['connections'],
             }
-
         return None
 
     def __execute(self, action):

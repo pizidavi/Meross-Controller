@@ -1,7 +1,6 @@
-from lib.Config import Config
-from lib.Database import Database
+from control.Config import Config
+from database.Database import Database
 
-# Variables
 config = Config()
 
 

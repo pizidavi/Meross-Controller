@@ -2,9 +2,6 @@ import json
 import math
 from datetime import datetime, time
 
-import lib.Logging as Log
-
-logger = Log.get_logger(__name__)
 FILENAME = 'config.json'
 
 

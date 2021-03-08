@@ -2,11 +2,11 @@ from meross_iot.http_api import MerossHttpClient
 from meross_iot.manager import MerossManager
 from meross_iot.model.enums import OnlineStatus
 
-import lib.Logging as Log
-from control.Device import Device
+from lib.logger import get_logger
+from obj.Device import Device
 import control.controller as Controller
 
-logger = Log.get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class Meross:
@@ -20,14 +20,20 @@ class Meross:
 
         self.__devices = []
 
-    async def async_init(self):
+    async def async_init(self) -> None:
         self.__http_client = await MerossHttpClient.async_from_user_password(email=self.__email,
                                                                              password=self.__password)
         self.__manager = MerossManager(http_client=self.__http_client)
         await self.__manager.async_init()
         await self.__manager.async_device_discovery()
 
-    def find_devices(self):
+    def get_device(self, device_id: int) -> Device or None:
+        for device in self.__devices:
+            if str(device.id) == str(device_id):
+                return device
+        return None
+
+    def find_devices(self) -> list:
         global_devices = Controller.get_devices()
 
         if not len(global_devices):
@@ -80,7 +86,7 @@ class Meross:
 
         return self.__devices
 
-    async def async_stop(self):
+    async def async_stop(self) -> None:
         for device in self.__devices:
             device.__del__()
 
