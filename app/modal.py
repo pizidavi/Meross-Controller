@@ -45,7 +45,7 @@ class Modal:
         for device in devices:
             await device.async_update()  # Update device information
             if device.is_locked:  # Ignore locked device
-                logger.info('%s ignored because locked', device.name)
+                logger.debug('%s ignored because locked', device.name)
                 continue
 
             time_always_on = False
@@ -58,8 +58,7 @@ class Modal:
                     logger.debug(f"{device.name} is turning on | Always On")
                     await device.async_turn_on()
 
-            elif device.solar_power_on and \
-                    (self.__sun.sunrise <= now.time() < self.__sun.sunset or device.is_on):  # Solar-Energy Power On
+            elif device.solar_power_on and self.__sun.is_day():  # Solar-Energy Power On
                 if not device.is_on and power_produced > device.current_power_usage:  # to On
                     logger.debug(f"{device.name} is turning on")
                     await device.async_turn_on()
@@ -70,7 +69,11 @@ class Modal:
                     logger.debug(f"{device.name} is turning off")
                     await device.async_turn_off()
 
-                    power_produced += device.current_power_usage
+                    instant_metrics = await device.async_get_instant_metrics()
+                    if instant_metrics is not None:
+                        power_produced += instant_metrics.power
+                    else:
+                        power_produced += device.current_power_usage
 
             elif device.is_on and now > device.next_power_status_change:  # Always Off
                 logger.debug(f"{device.name} is turning off | Always Off")

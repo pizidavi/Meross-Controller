@@ -4,7 +4,7 @@ from meross_iot.model.enums import OnlineStatus
 
 from lib.logger import get_logger
 from obj.Device import Device
-import control.controller as Controller
+import control.controller as controller
 
 logger = get_logger(__name__)
 
@@ -33,8 +33,8 @@ class Meross:
                 return device
         return None
 
-    def find_devices(self) -> list:
-        global_devices = Controller.get_devices()
+    def find_devices(self) -> list[Device]:
+        global_devices = controller.get_devices()
 
         if not len(global_devices):
             logger.warning('FIND_DEVICES: no devices')

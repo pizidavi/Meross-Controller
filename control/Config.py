@@ -1,6 +1,6 @@
 import json
 import math
-from datetime import datetime, time
+from datetime import datetime, date, time
 
 FILENAME = 'config.json'
 
@@ -40,8 +40,28 @@ class Config:
             self.__longitude = config['longitude']
             self.__timezone = config['timezone']
 
-        sunrise = property(lambda self: self.__calc(self.__SUNRISE))
-        sunset = property(lambda self: self.__calc(self.__SUNSET))
+            self.__sunrise = None
+            self.__sunset = None
+            self.__last_calc_sunrise = None
+            self.__last_calc_sunset = None
+
+        @property
+        def sunrise(self) -> time:
+            if self.__sunrise is None or self.__last_calc_sunrise != date.today():
+                self.__sunrise = self.__calc(self.__SUNRISE)
+                self.__last_calc_sunrise = date.today()
+            return self.__sunrise
+
+        @property
+        def sunset(self) -> time:
+            if self.__sunset is None or self.__last_calc_sunset != date.today():
+                self.__sunset = self.__calc(self.__SUNSET)
+                self.__last_calc_sunset = date.today()
+            return self.__sunset
+
+        def is_day(self, _time: time = None) -> bool:
+            _time = _time if _time is not None else datetime.now().time()
+            return self.sunrise <= _time < self.sunset
 
         def __calc(self, what, zenith=90.8) -> time:
             """

@@ -3,9 +3,10 @@ from datetime import datetime, time, timedelta
 from threading import Timer
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.model.enums import Namespace
+from meross_iot.model.plugin.power import PowerInfo
 
 from lib.logger import get_logger
-import control.controller as Controller
+import control.controller as controller
 
 logger = get_logger(__name__)
 
@@ -84,6 +85,10 @@ class Device:
         return self.__locked
 
     @property
+    def has_electricity_mixin(self) -> bool:
+        return isinstance(self.__device, ElectricityMixin)
+
+    @property
     def last_power_on(self) -> datetime:
         return self.__last_power_on
 
@@ -92,11 +97,8 @@ class Device:
         return self.__device.last_full_update_timestamp
 
     @property
-    def last_metrics(self):
-        if isinstance(self.__device, ElectricityMixin):
-            return self.__device.get_last_sample()
-        else:
-            return None
+    def last_metrics(self) -> PowerInfo or None:
+        return self.__device.get_last_sample() if self.has_electricity_mixin else None
 
     @property
     def next_power_status_change(self) -> datetime:
@@ -132,9 +134,8 @@ class Device:
             await self.__device.async_update()
             self.__last_state = self.is_on
 
-    async def async_update_instant_metrics(self):
-        if isinstance(self.__device, ElectricityMixin):
-            await self.__device.async_get_instant_metrics()
+    async def async_get_instant_metrics(self) -> PowerInfo or None:
+        return await self.__device.async_get_instant_metrics() if self.has_electricity_mixin else None
 
     def __register_push_notification(self) -> None:
         if not self.__notification_register:
@@ -153,7 +154,7 @@ class Device:
             if toggle != self.__last_state:
                 logger.info(f'CONTROL_TOGGLEX {self.name} is %s', 'on' if toggle else 'off')
 
-                asyncio.ensure_future(Controller.log(self.id, toggle))
+                asyncio.ensure_future(controller.log(self.id, toggle))
                 self.__last_state = toggle
                 self.__last_power_on = datetime.now() if toggle else self.__last_power_on
             else:
