@@ -28,10 +28,10 @@ class DAO:
     def get_all_devices(self):
         sql = "SELECT *, " \
                 "(SELECT dtaDate " \
-                    "FROM logs l " \
-                    "WHERE l.intIdDevice = d.intIdDevice and boolState = 1 " \
-                    "ORDER BY dtaDate DESC " \
-                    "LIMIT 1) as dtaLastPowerOn " \
+                "FROM logs l " \
+                "WHERE l.intIdDevice = d.intIdDevice and boolState = 1 " \
+                "ORDER BY dtaDate DESC " \
+                "LIMIT 1) as dtaLastPowerOn " \
               "FROM devices d"
         result = self.__db.execute(sql)
         return result.fetchall()
@@ -44,12 +44,7 @@ class DAO:
         return result.fetchall()
 
     def get_device(self, device_id: int):
-        sql = "SELECT *, " \
-                "(SELECT boolState " \
-                  "FROM logs l " \
-                  "WHERE l.intIdDevice = d.intIdDevice " \
-                  "ORDER BY dtaDate DESC " \
-                  "LIMIT 1) as boolState " \
+        sql = "SELECT * " \
               "FROM devices d " \
               "WHERE intIdDevice = %s"
         result = self.__db.execute(sql, device_id)
