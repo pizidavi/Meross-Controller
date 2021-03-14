@@ -33,7 +33,7 @@ class Meross:
                 return device
         return None
 
-    def find_devices(self) -> list[Device]:
+    def find_devices(self) -> list:
         global_devices = controller.get_devices()
 
         if not len(global_devices):
