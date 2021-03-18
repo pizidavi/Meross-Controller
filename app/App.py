@@ -106,4 +106,5 @@ class App:
             query.answer('Device not found', show_alert=True)
 
     def close(self):
+        self.__updater.stop()
         self.__loop.run_until_complete(self.__modal.async_close())
