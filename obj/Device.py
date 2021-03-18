@@ -1,11 +1,11 @@
 import asyncio
-from datetime import datetime, time, timedelta
-from threading import Timer
+from datetime import datetime
 from meross_iot.controller.mixins.electricity import ElectricityMixin
 from meross_iot.model.enums import Namespace
 from meross_iot.model.plugin.power import PowerInfo
 
 from lib.logger import get_logger
+from lib.Timer import Timer
 import control.controller as controller
 
 logger = get_logger(__name__)
@@ -22,7 +22,6 @@ class Device:
 
         self.__locked = False
         self.__locked_timer = None
-        self.__lock_expire_time = None
 
         self.__notification_register = False
         self.__register_push_notification()
@@ -65,8 +64,10 @@ class Device:
         return self.__kwargs['timesAlwaysOn']
 
     @property
-    def lock_expire_time(self) -> time:
-        return self.__lock_expire_time
+    def lock_expire_at(self) -> datetime or None:
+        if self.__locked_timer is not None:
+            return self.__locked_timer.expire_at
+        return None
 
     @property
     def firmware_version(self) -> str:
@@ -122,12 +123,10 @@ class Device:
         if delay > 0:
             self.__locked_timer = Timer(delay, self.unlock)
             self.__locked_timer.start()
-            self.__lock_expire_time = (datetime.now() + timedelta(seconds=delay)).time()
 
     def __cancel_lock(self) -> None:
         if self.__locked_timer is not None and self.__locked_timer.is_alive():
             self.__locked_timer.cancel()
-            self.__lock_expire_time = None
 
     async def async_update(self) -> None:
         if self.last_async_update_timestamp is None:

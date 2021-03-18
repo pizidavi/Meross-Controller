@@ -40,14 +40,14 @@ class View:
         current_power_usage = device.current_power_usage if hasattr(device, 'current_power_usage') else device.intUsage
         is_on = device.is_on if hasattr(device, 'is_on') else False
         is_locked = device.is_locked if hasattr(device, 'is_locked') else False
-        lock_expire_time = device.lock_expire_time if hasattr(device, 'lock_expire_time') else None
+        lock_expire_at = device.lock_expire_at if hasattr(device, 'lock_expire_at') else None
         disabled = device.boolDisable if hasattr(device, 'boolDisable') else False  # from DAO
 
         message = '*{}* {}{}\n\n' \
                   'Stato: {}\n' \
                   'Consumo Teorico: {} W\n'\
             .format(name,
-                    ('🔒' + (' | until ' + lock_expire_time.strftime('%H:%M') if lock_expire_time is not None else '')
+                    ('🔒' + (' | until ' + lock_expire_at.strftime('%H:%M') if lock_expire_at is not None else '')
                      if is_locked else ''),
                     ('- __Disabilitato__ ❌' if disabled else ''),
                     '🔴' if not is_on else '🔵',
@@ -74,7 +74,7 @@ class View:
         message = 'Per quante ore bloccare il dispositivo?'
         inline_keyboard = [
             [
-                InlineKeyboardButton(text=x,
+                InlineKeyboardButton(text=str(x),
                                      callback_data='lock|{}|{}'.format(device_id, x * 60 * 60)) for x in range(2, 7)
             ],
             [InlineKeyboardButton(text='Sempre', callback_data='lock|{}|{}'.format(device_id, 0, 0))],
