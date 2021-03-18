@@ -65,6 +65,13 @@ class DAO:
         result = self.__db.execute(sql, date, device_id)
         return result.fetchall()
 
+    def get_device_attributes(self, device_id: int):
+        sql = "SELECT * " \
+              "FROM attributes " \
+              "WHERE intIdDevice = %s"
+        result = self.__db.execute(sql, device_id)
+        return result.fetchall()
+
     def log(self, device_id: int, state: int):
         sql = "INSERT INTO logs (intIdDevice, boolState) VALUES (%s, %s)"
         self.__db.execute(sql, device_id, state)

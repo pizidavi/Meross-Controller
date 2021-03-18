@@ -32,7 +32,7 @@ class View:
         return message, inline_keyboard
 
     @staticmethod
-    def device(device, powers_on: list, day=0) -> tuple:
+    def device(device, powers_on: list, attributes: list, day=0) -> tuple:
         date = datetime.today() + timedelta(days=int(day))
 
         device_id = device.id if hasattr(device, 'id') else device.intIdDevice
@@ -52,6 +52,9 @@ class View:
                     ('- __Disabilitato__ ❌' if disabled else ''),
                     '🔴' if not is_on else '🔵',
                     current_power_usage)
+
+        for _row in attributes:
+            message += '{} {}\n'.format(_row.strText, _row.strValue)
 
         message += '\nAccensioni di _{}_:\n'.format('Oggi' if day == 0 else date.strftime('%d-%m-%Y'))
         for _row in powers_on:

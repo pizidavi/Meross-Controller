@@ -39,6 +39,19 @@ CREATE TABLE `timesalwayspoweron` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
+-- Table structure for table `attributes`
+--
+CREATE TABLE `attributes` (
+	`strIdAttribute` varchar(25) NOT NULL,
+	`intIdDevice` int(11) NOT NULL,
+	`strText` varchar(50) NULL,
+	`strValue` varchar(50) NULL,
+	`dtaLastUpdate` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`strIdAttribute`, `intIdDevice`),
+	FOREIGN KEY (`intIdDevice`) REFERENCES `devices` (`intIdDevice`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `users`
 --
 CREATE TABLE `users` (

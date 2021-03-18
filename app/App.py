@@ -108,9 +108,10 @@ class App:
         if device is None:  # get from db if not exist in modal
             device = self.__dao.get_device(data[0])
         powers_on = self.__dao.get_device_powers_on(data[0], date.strftime('%Y-%m-%d'))
+        attributes = self.__dao.get_device_attributes(data[0])
 
         if device is not None:
-            message, inline_keyboard = self.__view.device(device, powers_on, int(data[1]))
+            message, inline_keyboard = self.__view.device(device, powers_on, attributes, int(data[1]))
             self.__bot.editMessageText(msg_identifier, message,
                                        reply_markup=InlineKeyboardMarkup(inline_keyboard=inline_keyboard),
                                        parse_mode='Markdown')
