@@ -68,7 +68,7 @@ class DAO:
     def get_device_attributes(self, device_id: int):
         sql = "SELECT * " \
               "FROM attributes " \
-              "WHERE intIdDevice = %s"
+              "WHERE intIdDevice = %s and boolDisable = 0"
         result = self.__db.execute(sql, device_id)
         return result.fetchall()
 

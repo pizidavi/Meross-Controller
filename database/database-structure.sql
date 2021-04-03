@@ -47,6 +47,7 @@ CREATE TABLE `attributes` (
 	`strText` varchar(50) NULL,
 	`strValue` varchar(50) NULL,
 	`dtaLastUpdate` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+	`boolDisable` tinyint(1) DEFAULT 0 NOT NULL,
 	PRIMARY KEY (`strIdAttribute`, `intIdDevice`),
 	FOREIGN KEY (`intIdDevice`) REFERENCES `devices` (`intIdDevice`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
