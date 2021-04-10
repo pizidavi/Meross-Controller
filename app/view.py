@@ -54,7 +54,8 @@ class View:
                     current_power_usage)
 
         for _row in attributes:
-            message += '{} {}\n'.format(_row.strText, _row.strValue)
+            value = _row.strValue if not _row.dtaLastUpdate + timedelta(minutes=10) < datetime.now() else 'Errore'
+            message += '{} {}\n'.format(_row.strText, value)
 
         message += '\nAccensioni di _{}_:\n'.format('Oggi' if day == 0 else date.strftime('%d-%m-%Y'))
         for _row in powers_on:
