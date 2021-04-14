@@ -1,5 +1,6 @@
 import json
 import math
+import time as tm
 from datetime import datetime, date, time
 
 FILENAME = 'config.json'
@@ -70,8 +71,11 @@ class Config:
             :return: time
             """
             def get_current_utc():
-                now = datetime.now()
-                return [now.day, now.month, now.year]
+                dt = datetime.now()
+                return [dt.day, dt.month, dt.year]
+
+            def is_dst():
+                return tm.localtime().tm_isdst
 
             def force_range(v, maximum):
                 if v < 0:
@@ -84,7 +88,6 @@ class Config:
 
             latitude = self.__latitude
             longitude = self.__longitude
-            timezone = self.__timezone
 
             TO_RAD = math.pi / 180
 
@@ -128,7 +131,7 @@ class Config:
 
             # 7a. calculate the Sun's local hour angle
             cosH = (math.cos(TO_RAD * zenith) - (sinDec * math.sin(TO_RAD * latitude))) / (
-                        cosDec * math.cos(TO_RAD * latitude))
+                    cosDec * math.cos(TO_RAD * latitude))
 
             if cosH > 1:
                 raise self.SunTimeException('The sun never rises on this location (on the specified date)')
@@ -140,22 +143,19 @@ class Config:
                 H = 360 - (1 / TO_RAD) * math.acos(cosH)
             else:
                 H = (1 / TO_RAD) * math.acos(cosH)
-
-            H = H / 15
+            H /= 15
 
             # 8. calculate local mean time of rising/setting
             T = H + RA - (0.06571 * t) - 6.622
 
-            # 9. adjust back to UTC
-            UT = T - lngHour + timezone
+            # 9. adjust back to Local Time
+            UT = T - lngHour + self.__timezone + int(is_dst())
             UT = force_range(UT, 24)  # UTC time in decimal format (e.g. 23.23)
 
             # 10. Return
             hour = int(UT)
             minute = int((UT * 60) % 60)
-            second = 0
-
-            return time(hour=hour, minute=minute, second=second)
+            return time(hour=hour, minute=minute)
 
     class __TelegramConfig:
 
