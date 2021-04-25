@@ -32,29 +32,35 @@ class View:
         return message, inline_keyboard
 
     @staticmethod
-    def device(device, powers_on: list, attributes: list, day=0) -> tuple:
+    def device(_type: str, device, powers_on: list, attributes: list, day=0) -> tuple:
         date = datetime.today() + timedelta(days=int(day))
 
-        device_id = device.id if hasattr(device, 'id') else device.intIdDevice
-        name = device.name if hasattr(device, 'name') else device.strName
-        current_power_usage = device.current_power_usage if hasattr(device, 'current_power_usage') else device.intUsage
-        is_on = device.is_on if hasattr(device, 'is_on') else False
-        is_locked = device.is_locked if hasattr(device, 'is_locked') else False
-        lock_expire_at = device.lock_expire_at if hasattr(device, 'lock_expire_at') else None
-        disabled = device.boolDisable if hasattr(device, 'boolDisable') else False  # from DAO
+        device_id = device.id if _type == 'local' else device.intIdDevice
+        name = device.name if _type == 'local' else device.strName
+        current_power_usage = device.current_power_usage if _type == 'local' else device.intUsage
+        is_on = device.is_on if _type == 'local' else False
+        is_locked = device.is_locked if _type == 'local' else False
+        lock_expire_at = device.lock_expire_at if _type == 'local' else None
+        disabled = False if _type == 'local' else device.boolDisable
 
-        message = '*{}* {}{}\n\n' \
+        caption = ''
+        if is_locked:
+            caption = '🔒' + (' | until ' + lock_expire_at.strftime('%H:%M') if lock_expire_at is not None else '')
+        elif not _type == 'local' and not disabled:
+            caption = '🔸'
+        elif disabled:
+            caption = '❌ __Disabilitato__'
+
+        message = '*{}* {}\n\n' \
                   'Stato: {}\n' \
                   'Consumo Teorico: {} W\n'\
             .format(name,
-                    ('🔒' + (' | until ' + lock_expire_at.strftime('%H:%M') if lock_expire_at is not None else '')
-                     if is_locked else ''),
-                    ('- __Disabilitato__ ❌' if disabled else ''),
+                    caption,
                     '🔴' if not is_on else '🔵',
                     current_power_usage)
 
         for _row in attributes:
-            value = _row.strValue if not _row.dtaLastUpdate + timedelta(minutes=10) < datetime.now() else 'Errore'
+            value = _row.strValue if not _row.dtaLastUpdate + timedelta(minutes=10) < datetime.now() else 'Error'
             message += '{} {}\n'.format(_row.strText, value)
 
         message += '\nAccensioni di _{}_:\n'.format('Oggi' if day == 0 else date.strftime('%d-%m-%Y'))
@@ -67,7 +73,7 @@ class View:
             button.append(InlineKeyboardButton(text='▶️', callback_data='device|{}|{}'.format(device_id, day + 1)))
 
         inline_keyboard = [button]
-        if not disabled:
+        if _type == 'local' and not disabled:
             inline_keyboard.append([InlineKeyboardButton(text=('🔓 Unlock' if is_locked else '🔒 Lock'),
                                       callback_data='{}|{}'.format(('unlock' if is_locked else 'lock'), device_id))])
         inline_keyboard.append([InlineKeyboardButton(text='⬅️ Indietro', callback_data='menu')])

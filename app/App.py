@@ -93,14 +93,16 @@ class App:
     def __device(self, query, device_id, day=0):
         date = datetime.today() + timedelta(days=day)
 
+        _type = 'local'
         device = self.__modal.get_device(device_id)
-        if device is None:  # get from db if not exist in Modal
+        if device is None:  # get from DB if not exist
+            _type = 'db'
             device = self.__dao.get_device(device_id)
         powers_on = self.__dao.get_device_powers_on(device_id, date.strftime('%Y-%m-%d'))
         attributes = self.__dao.get_device_attributes(device_id)
 
         if device is not None:
-            text, inline_keyboard = self.__view.device(device, powers_on, attributes, day)
+            text, inline_keyboard = self.__view.device(_type, device, powers_on, attributes, day)
             query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard))
         else:
             query.answer('Device not found', show_alert=True)
