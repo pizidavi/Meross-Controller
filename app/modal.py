@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from control.Meross import Meross
 from lib.logger import get_logger
 from lib.SolarEdge import SolarEdge
+from lib.Sun import Sun
 
 # Logging
 logging.getLogger('meross_iot').setLevel(logging.INFO)
@@ -16,10 +17,9 @@ logger = get_logger(__name__)
 class Modal:
 
     def __init__(self, meross, solaredge, sun):
-        self.__sun = sun
-
         self.__manager = Meross(meross.email, meross.password)
         self.__solaredge = SolarEdge(solaredge.api_token, solaredge.site_id, solaredge.home_default_load)
+        self.__sun = Sun(sun.latitude, sun.longitude, sun.timezone)
 
         self.__scheduler = AsyncIOScheduler()
         self.__scheduler.add_job(self.__async_loop, 'interval', minutes=5)
