@@ -3,8 +3,8 @@ from telegram import Update, InlineKeyboardMarkup, ParseMode
 from telegram.ext import Updater, CallbackContext, Defaults
 
 from lib.logger import get_logger
+from database.DAO import DAO
 from control.Config import Config
-from control.DAO import DAO
 from app.view import View
 from app.modal import Modal
 

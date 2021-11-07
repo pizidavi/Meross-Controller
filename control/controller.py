@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from control.DAO import DAO
+from database.DAO import DAO
 
 # Variables
 dao = DAO()

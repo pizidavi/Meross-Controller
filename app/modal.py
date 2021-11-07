@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from lib.logger import get_logger
 from control.Meross import Meross
+from lib.logger import get_logger
 from lib.SolarEdge import SolarEdge
 
 # Logging
@@ -17,10 +17,9 @@ class Modal:
 
     def __init__(self, meross, solaredge, sun):
         self.__sun = sun
-        self.__home_default_load = solaredge.home_default_load
 
         self.__manager = Meross(meross.email, meross.password)
-        self.__solaredge = SolarEdge(solaredge.api_token, solaredge.site_id)
+        self.__solaredge = SolarEdge(solaredge.api_token, solaredge.site_id, solaredge.home_default_load)
 
         self.__scheduler = AsyncIOScheduler()
         self.__scheduler.add_job(self.__async_loop, 'interval', minutes=5)
@@ -39,7 +38,11 @@ class Modal:
             return
 
         result = self.__solaredge.get_current_power_flow(sunrise=self.__sun.sunrise, sunset=self.__sun.sunset)
-        power_produced = (result['PV'] - result['LOAD']) if result else -self.__home_default_load
+        if not result:
+            logger.error('SOLAREDGE: Request failed')
+            return
+
+        power_produced = result['PV'] - result['LOAD']
         logger.info(f"Remaining power: {power_produced} W")
 
         for device in devices:
