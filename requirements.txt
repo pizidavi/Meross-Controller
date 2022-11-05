@@ -1,4 +1,4 @@
-meross_iot==0.4.1.0rc7
-apscheduler==3.6.3
-python-telegram-bot>=13
-mysql-connector-python>=8.0
+meross_iot==0.4.5.0
+apscheduler>=3.6.3
+python-telegram-bot~=13.14
+mysql-connector-python==8.0.29
