@@ -1,11 +1,12 @@
 import sys
 import logging
+import logging.handlers as handlers
 
 StreamHandler = logging.StreamHandler(sys.stdout)
 StreamHandler.setLevel(logging.INFO)
 StreamHandler.setFormatter(logging.Formatter('%(levelname)s:%(asctime)s: %(message)s'))
 
-FileHandler = logging.FileHandler('syslog.log')
+FileHandler = handlers.TimedRotatingFileHandler('syslog.log', when='W0', backupCount=3)
 FileHandler.setLevel(logging.DEBUG)
 FileHandler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
 
