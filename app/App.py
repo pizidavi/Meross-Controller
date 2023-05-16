@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardMarkup, ParseMode
-from telegram.ext import Updater, CallbackContext, Defaults
+from telegram.ext import Updater, CallbackContext
+from telegram.ext import Defaults, Filters
+from telegram.ext import MessageHandler, CallbackQueryHandler
 
 from lib.logger import get_logger
 from database.DAO import DAO
@@ -19,9 +21,14 @@ class App:
         self.__dao = None
 
         self.__updater = Updater(config.telegram.token, defaults=Defaults(parse_mode=ParseMode.MARKDOWN))
-        self.__view = View(self.__updater, self.__handler)
+        self.__updater.dispatcher.add_handler(MessageHandler(Filters.chat_type, self.__handler))
+        self.__updater.dispatcher.add_handler(CallbackQueryHandler(self.__handler))
+        self.__updater.dispatcher.add_error_handler(self.__handler_error)
+        self.__updater.start_polling()
 
+        self.__view = View()
         self.__modal = Modal(config.meross, config.solaredge, config.sun)
+
         self.__loop.run_until_complete(self.__modal.async_init())
 
     def __handler(self, update: Update, _: CallbackContext) -> None:
@@ -89,6 +96,10 @@ class App:
             else:
                 query.answer('Command not found', show_alert=True)
             query.answer()
+
+    @staticmethod
+    def __handler_error(update, context: CallbackContext):
+        logger.error('TelegramError: %s', context.error)
 
     def __device(self, query, device_id, day=0):
         date = datetime.today() + timedelta(days=day)

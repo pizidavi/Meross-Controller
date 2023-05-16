@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta
 from telegram import InlineKeyboardButton
-from telegram.ext import Updater, Filters
-from telegram.ext import MessageHandler, CallbackQueryHandler
 
 from lib.logger import get_logger
 
@@ -10,10 +8,7 @@ logger = get_logger(__name__)
 
 class View:
 
-    def __init__(self, updater: Updater, handler):
-        updater.dispatcher.add_handler(MessageHandler(Filters.chat_type, handler))
-        updater.dispatcher.add_handler(CallbackQueryHandler(handler))
-        updater.start_polling()
+    def __init__(self):
         logger.info('TelegramBot started')
 
     @staticmethod

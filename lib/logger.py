@@ -7,7 +7,7 @@ StreamHandler.setLevel(logging.INFO)
 StreamHandler.setFormatter(logging.Formatter('%(levelname)s:%(asctime)s: %(message)s'))
 
 FileHandler = handlers.TimedRotatingFileHandler('syslog.log', when='W0', backupCount=3)
-FileHandler.setLevel(logging.DEBUG)
+FileHandler.setLevel(logging.WARNING)
 FileHandler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
 
 
