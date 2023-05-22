@@ -2,3 +2,4 @@ meross_iot>=0.4.5.9
 apscheduler>=3.6.3
 python-telegram-bot~=13.14
 mysql-connector-python==8.0.29
+tzlocal<3.0
