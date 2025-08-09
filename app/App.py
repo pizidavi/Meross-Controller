@@ -27,7 +27,7 @@ class App:
         self.__updater.start_polling()
 
         self.__view = View()
-        self.__modal = Modal(config.meross, config.solaredge, config.sun)
+        self.__modal = Modal(config.meross, config.solaredge, config.sun, config.health_check)
 
         self.__loop.run_until_complete(self.__modal.async_init())
 

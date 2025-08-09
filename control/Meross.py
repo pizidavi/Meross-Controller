@@ -21,8 +21,11 @@ class Meross:
         self.__devices = []
 
     async def async_init(self) -> None:
-        self.__http_client = await MerossHttpClient.async_from_user_password(email=self.__email,
-                                                                             password=self.__password)
+        self.__http_client = await MerossHttpClient.async_from_user_password(
+            api_base_url='https://iotx-eu.meross.com',
+            email=self.__email,
+            password=self.__password
+        )
         self.__manager = MerossManager(http_client=self.__http_client)
         await self.__manager.async_init()
         await self.__manager.async_device_discovery()

@@ -1,4 +1,5 @@
 {
+  "ENV": "production",
   "MEROSS": {
     "email": "",
     "password": ""
@@ -21,5 +22,8 @@
   },
   "TELEGRAM": {
     "token": ""
+  },
+  "HEALTH_CHECK": {
+    "webhook_url": ""
   }
 }

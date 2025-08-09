@@ -3,15 +3,20 @@ import asyncio
 from datetime import datetime
 
 from app.App import App
+from control.Config import Config
+
+config = Config()
 
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
-    timeout_minutes = 5
-    current_time = datetime.now()
-    wait_time = timeout_minutes * 60 - (current_time.minute % timeout_minutes)*60 - current_time.second
-    time.sleep(wait_time)
+    if config.env != 'development':
+        timeout_minutes = 5
+        current_time = datetime.now()
+        wait_time = timeout_minutes * 60 - (current_time.minute % timeout_minutes)*60 - current_time.second
+        print(f'Waiting for {wait_time} seconds to startup')
+        time.sleep(wait_time)
 
     app = App(loop)
 

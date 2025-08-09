@@ -16,10 +16,11 @@ logger = get_logger(__name__)
 
 class Modal:
 
-    def __init__(self, meross, solaredge, sun):
+    def __init__(self, meross, solaredge, sun, health_check):
         self.__manager = Meross(meross.email, meross.password)
         self.__solaredge = SolarEdge(solaredge.api_token, solaredge.site_id, solaredge.home_default_load)
         self.__sun = Sun(sun.latitude, sun.longitude, sun.timezone)
+        self.__health_check = health_check
 
         self.__scheduler = AsyncIOScheduler()
         self.__scheduler.add_job(self.__async_loop, 'interval', minutes=5)
@@ -81,6 +82,9 @@ class Modal:
             elif device.is_on and now > device.next_power_status_change:  # Always Off
                 logger.debug(f"{device.name} is turning off | Always Off")
                 await device.async_turn_off()
+
+        # Ping health check service
+        self.__health_check.ping()
 
     def get_device(self, device_id):
         return self.__manager.get_device(device_id)
