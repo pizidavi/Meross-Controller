@@ -1,7 +1,9 @@
-.idea/
 .venv/
-*/__pycache__
-docs/
+__pycache__/
+.idea/
+.vscode/
+
+*.pyc
+*.log
+
 config.json
-syslog.log
-syslog.log.*
